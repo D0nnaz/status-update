@@ -19,7 +19,7 @@ jobs:
       - name: Python installeren
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10
+          python-version: 3.12
 
       - name: Dependencies installeren
         run: pip install slack_sdk
