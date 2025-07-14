@@ -1,0 +1,28 @@
+name: Daily Slack Reminder
+
+on:
+  schedule:
+    - cron: '30 6 * * 1-5'  
+  workflow_dispatch:  
+
+jobs:
+  slack-message:
+    runs-on: ubuntu-latest
+    env:
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      SLACK_USER_ID: ${{ secrets.SLACK_USER_ID }}
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v3
+
+      - name: Python installeren
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      - name: Dependencies installeren
+        run: pip install slack_sdk
+
+      - name: Slackbericht versturen
+        run: python send_slack_message.py
