@@ -1,10 +1,9 @@
-# send_slack_message.py
-
 import os
-from datetime import datetime
-from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
+import datetime
+import json
+import requests
 
+# Statusberichten per dag
 messages = {
     "Monday": "STAAAATUSUPDATEEEE! Weekend overleefd?",
     "Tuesday": "STAAAATUSUPDATEEEE! Hoe gaat het met je dinsdagdip?",
@@ -14,23 +13,24 @@ messages = {
 }
 
 def main():
-    slack_token = os.environ["SLACK_BOT_TOKEN"]
-    user_id = os.environ["SLACK_USER_ID"]
+    webhook_url = os.environ["SLACK_WEBHOOK_URL"]
+    day = datetime.datetime.utcnow().strftime('%A')
+    message = messages.get(day, "Goedemorgen! Hoe gaat het vandaag?")
 
-    # Bepaal dag van de week (UTC)
-    day_of_week = datetime.utcnow().strftime('%A')
-    message = messages.get(day_of_week, "Goedemorgen! Hoe gaat het vandaag?")
+    payload = {
+        "text": message
+    }
 
-    client = WebClient(token=slack_token)
+    response = requests.post(
+        webhook_url,
+        data=json.dumps(payload),
+        headers={'Content-Type': 'application/json'}
+    )
 
-    try:
-        response = client.chat_postMessage(
-            channel=user_id,
-            text=message
-        )
-        print(f"Bericht verzonden: {response['message']['text']}")
-    except SlackApiError as e:
-        print(f"Fout bij verzenden: {e.response['error']}")
+    if response.status_code != 200:
+        raise Exception(f"Slack webhook failed: {response.status_code}, {response.text}")
+    else:
+        print("✅ Bericht succesvol verzonden via webhook")
 
 if __name__ == "__main__":
     main()
