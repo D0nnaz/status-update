@@ -9,8 +9,7 @@ jobs:
   slack-message:
     runs-on: ubuntu-latest
     env:
-      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-      SLACK_USER_ID: ${{ secrets.SLACK_USER_ID }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
       - name: Code ophalen
@@ -22,7 +21,7 @@ jobs:
           python-version: 3.12
 
       - name: Dependencies installeren
-        run: pip install slack_sdk
+        run: pip install requests
 
       - name: Slackbericht versturen
         run: python send_slack_message.py
