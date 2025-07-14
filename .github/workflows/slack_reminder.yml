@@ -2,7 +2,8 @@ name: Daily Slack Reminder
 
 on:
   schedule:
-    - cron: '5 13 * * *'
+        - cron: '20 13 * 3-10 *'   # maart–oktober (zomer)
+        - cron: '20 14 * 1,2,11,12 *' # nov–feb (winter)
   workflow_dispatch:  
 
 jobs:
