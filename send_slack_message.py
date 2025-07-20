@@ -3,7 +3,6 @@ import datetime
 import json
 import requests
 
-# Statusberichten per dag
 messages = {
     "Monday": "STAAAATUSUPDATEEEE! Weekend overleefd?",
     "Tuesday": "STAAAATUSUPDATEEEE! Hoe gaat het met je dinsdagdip?",
@@ -15,7 +14,12 @@ messages = {
 def main():
     webhook_url = os.environ["SLACK_WEBHOOK_URL"]
     day = datetime.datetime.utcnow().strftime('%A')
-    message = messages.get(day, "Goedemorgen! Hoe gaat het vandaag?")
+
+    if day in ["Saturday", "Sunday"]:
+        print(f"⏸ Geen statusupdate op {day}.")
+        return
+
+    message = messages[day]
 
     payload = {
         "text": message
