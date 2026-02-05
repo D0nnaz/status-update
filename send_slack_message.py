@@ -1,8 +1,8 @@
 import os
 import datetime
-import json
 import requests
 
+# Statusberichten per dag
 messages = {
     "Monday": "STAAAATUSUPDATEEEE! Weekend overleefd?",
     "Tuesday": "STAAAATUSUPDATEEEE! Hoe gaat het met je dinsdagdip?",
@@ -11,30 +11,45 @@ messages = {
     "Friday": "STAAAATUSUPDATEEEE! Bijna weekend! Nog leuke plannen (met iemand 👀)?"
 }
 
-def main():
-    webhook_url = os.environ["SLACK_WEBHOOK_URL"]
-    day = datetime.datetime.utcnow().strftime('%A')
+SLACK_API_BASE = "https://slack.com/api"
 
-    if day in ["Saturday", "Sunday"]:
-        print(f"⏸ Geen statusupdate op {day}.")
-        return
 
-    message = messages[day]
-
-    payload = {
-        "text": message
-    }
-
-    response = requests.post(
-        webhook_url,
-        data=json.dumps(payload),
-        headers={'Content-Type': 'application/json'}
+def slack_api(method: str, token: str, payload: dict) -> dict:
+    resp = requests.post(
+        f"{SLACK_API_BASE}/{method}",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json; charset=utf-8",
+        },
+        json=payload,
+        timeout=20,
     )
+    data = resp.json()
+    if resp.status_code != 200:
+        raise Exception(f"Slack API HTTP {resp.status_code}: {resp.text}")
+    if not data.get("ok"):
+        raise Exception(f"Slack API error in {method}: {data.get('error')} | response={data}")
+    return data
 
-    if response.status_code != 200:
-        raise Exception(f"Slack webhook failed: {response.status_code}, {response.text}")
-    else:
-        print("✅ Bericht succesvol verzonden via webhook")
+
+def main():
+    token = os.environ["SLACK_BOT_TOKEN"]          # nieuw
+    channel = os.environ["SLACK_CHANNEL_ID"]      # nieuw (C... / G... / D...)
+
+    day = datetime.datetime.utcnow().strftime("%A")
+    message = messages.get(day, "Goedemorgen! Hoe gaat het vandaag?")
+
+    # 1) Post het bericht (zodat we ts krijgen)
+    post = slack_api("chat.postMessage", token, {"channel": channel, "text": message})
+    ts = post["ts"]
+    ch = post["channel"]
+
+    print(f"✅ Bericht gepost in {ch} op ts={ts}")
+
+    # 2) Pin het bericht (zodat het voor iedereen in die chat blijft staan)
+    slack_api("pins.add", token, {"channel": ch, "timestamp": ts})
+    print("📌 Bericht succesvol gepind")
+
 
 if __name__ == "__main__":
     main()
