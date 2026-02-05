@@ -5,14 +5,11 @@ on:
     - cron: '30 6 * 3-10 *'
     - cron: '30 7 * 11,12,1,2 *'
   workflow_dispatch:
-
 jobs:
   slack-message:
     runs-on: ubuntu-latest
     env:
-      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-      SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-      MODE: reminder
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
       - name: Code ophalen
