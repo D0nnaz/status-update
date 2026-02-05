@@ -9,23 +9,25 @@ on:
         type: string
 
 jobs:
-  update:
+  update-status:
     runs-on: ubuntu-latest
+    env:
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+      MODE: status
+      STATUS_MESSAGE: ${{ inputs.status_message }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Code ophalen
+        uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Python installeren
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: 3.12
 
-      - name: Install dependencies
+      - name: Dependencies installeren
         run: pip install requests
 
-      - name: Update pinned status
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-          MODE: status
-          STATUS_MESSAGE: ${{ inputs.status_message }}
+      - name: Status pin updaten
         run: python send_slack_message.py
