@@ -33,22 +33,22 @@ def slack_api(method: str, token: str, payload: dict) -> dict:
 
 
 def main():
-    token = os.environ["SLACK_BOT_TOKEN"]          # nieuw
-    channel = os.environ["SLACK_CHANNEL_ID"]      # nieuw (C... / G... / D...)
+    token = os.environ["SLACK_BOT_TOKEN"]
+    channel = os.environ["SLACK_CHANNEL_ID"]
 
+    # 0) One-time pinned status message (editable via GitHub Secret)
+    status_message = os.environ.get("STATUS_MESSAGE", "Donna’s status: 🙂")
+
+    status_post = slack_api("chat.postMessage", token, {"channel": channel, "text": status_message})
+    slack_api("pins.add", token, {"channel": status_post["channel"], "timestamp": status_post["ts"]})
+    print("📌 Statusbericht gepost en gepind")
+
+    # 1) Dagelijkse message (niet gepind)
     day = datetime.datetime.utcnow().strftime("%A")
     message = messages.get(day, "Goedemorgen! Hoe gaat het vandaag?")
 
-    # 1) Post het bericht (zodat we ts krijgen)
     post = slack_api("chat.postMessage", token, {"channel": channel, "text": message})
-    ts = post["ts"]
-    ch = post["channel"]
-
-    print(f"✅ Bericht gepost in {ch} op ts={ts}")
-
-    # 2) Pin het bericht (zodat het voor iedereen in die chat blijft staan)
-    slack_api("pins.add", token, {"channel": ch, "timestamp": ts})
-    print("📌 Bericht succesvol gepind")
+    print(f"✅ Dagelijkse message gepost in {post['channel']} op ts={post['ts']}")
 
 
 if __name__ == "__main__":
