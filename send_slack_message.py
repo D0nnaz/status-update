@@ -1,40 +1,40 @@
+import os
+import datetime
+import json
+import requests
+
+messages = {
+    "Monday": "STAAAATUSUPDATEEEE! Weekend overleefd?",
+    "Tuesday": "STAAAATUSUPDATEEEE! Hoe gaat het met je dinsdagdip?",
+    "Wednesday": "STAAAATUSUPDATEEEE! Het glas is halfvol: halverwege de week! Nou ja, bij jou waarschijnlijk alweer leeg... je gooit zo’n glas rode wijn toch meteen achterover.",
+    "Thursday": "Geachte mevrouw Van Haeften,\nBij dezen het vriendelijke doch dringende verzoek om uw donderdagstatus mede te delen. Bij voorbaat dank.\nHoogachtend,\nUw Slackbot 🤖🎩",
+    "Friday": "STAAAATUSUPDATEEEE! Bijna weekend! Nog leuke plannen (met iemand 👀)?"
+}
+
 def main():
-    token = os.environ["SLACK_BOT_TOKEN"]
-    channel = os.environ["SLACK_CHANNEL_ID"]
+    webhook_url = os.environ["SLACK_WEBHOOK_URL"]
+    day = datetime.datetime.utcnow().strftime('%A')
 
-    mode = os.environ.get("MODE", "reminder").lower()
-
-    STATUS_PREFIX = "Donna’s status:"
-    status_message = os.environ.get("STATUS_MESSAGE", f"{STATUS_PREFIX} 🙂")
-
-    def upsert_pinned_status():
-        # Zoek bestaande pinned status en update die; anders: post + pin
-        pins = slack_api("pins.list", token, {"channel": channel}).get("items", [])
-
-        existing_ts = None
-        for item in pins:
-            msg = item.get("message")
-            if not msg:
-                continue
-            text = msg.get("text", "")
-            if text.startswith(STATUS_PREFIX):
-                existing_ts = msg.get("ts")
-                break
-
-        if existing_ts:
-            slack_api("chat.update", token, {"channel": channel, "ts": existing_ts, "text": status_message})
-            print(f"📝 Status-pin geüpdatet (ts={existing_ts})")
-        else:
-            post = slack_api("chat.postMessage", token, {"channel": channel, "text": status_message})
-            slack_api("pins.add", token, {"channel": post["channel"], "timestamp": post["ts"]})
-            print(f"📌 Status-pin aangemaakt + gepind (ts={post['ts']})")
-
-    if mode == "status":
-        upsert_pinned_status()
+    if day in ["Saturday", "Sunday"]:
+        print(f"⏸ Geen statusupdate op {day}.")
         return
 
-    day = datetime.datetime.utcnow().strftime("%A")
-    message = messages.get(day, "Goedemorgen! Hoe gaat het vandaag?")
+    message = messages[day]
 
-    post = slack_api("chat.postMessage", token, {"channel": channel, "text": message})
-    print(f"✅ Dagelijkse message gepost in {post['channel']} op ts={post['ts']}")
+    payload = {
+        "text": message
+    }
+
+    response = requests.post(
+        webhook_url,
+        data=json.dumps(payload),
+        headers={'Content-Type': 'application/json'}
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Slack webhook failed: {response.status_code}, {response.text}")
+    else:
+        print("✅ Bericht succesvol verzonden via webhook")
+
+if __name__ == "__main__":
+    main()
