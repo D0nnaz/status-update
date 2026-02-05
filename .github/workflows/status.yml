@@ -1,0 +1,31 @@
+name: Update pinned status
+
+on:
+  workflow_dispatch:
+    inputs:
+      status_message:
+        description: "Bijv: Donna’s status: 😄"
+        required: true
+        type: string
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Update pinned status
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          MODE: status
+          STATUS_MESSAGE: ${{ inputs.status_message }}
+        run: python send_slack_message.py
