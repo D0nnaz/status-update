@@ -18,9 +18,9 @@ def main():
     tz = pytz.timezone("Europe/Amsterdam")
     now = datetime.datetime.now(tz)
 
-    if not (now.hour == 8 and now.minute == 30):
-        print(f"⏸ Niet de juiste tijd: {now}")
-        return
+    if not (now.hour == 8 and 30 <= now.minute < 35):
+    print(f"⏸ Niet de juiste tijd: {now}")
+    return
 
     day = now.strftime('%A')
 
