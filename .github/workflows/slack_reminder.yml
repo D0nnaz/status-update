@@ -3,7 +3,6 @@ name: Daily Slack Reminder
 on:
   schedule:
     - cron: '30 6 * * *'
-    - cron: '30 7 * * *'
   workflow_dispatch:
 
 jobs:
