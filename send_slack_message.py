@@ -2,7 +2,6 @@ import os
 import datetime
 import json
 import requests
-import pytz
 
 messages = {
     "Monday": "STAAAATUSUPDATEEEE! Weekend overleefd?",
@@ -14,11 +13,7 @@ messages = {
 
 def main():
     webhook_url = os.environ["SLACK_WEBHOOK_URL"]
-    
-    tz = pytz.timezone("Europe/Amsterdam")
-    now = datetime.datetime.now(tz)
-
-    day = now.strftime('%A')
+    day = datetime.datetime.utcnow().strftime('%A')
 
     if day in ["Saturday", "Sunday"]:
         print(f"⏸ Geen statusupdate op {day}.")
